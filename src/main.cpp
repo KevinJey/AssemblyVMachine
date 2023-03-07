@@ -336,7 +336,7 @@ int main(int argc, const char* argv[])
     if (argc < 2)
     {
         /* show usage string */
-        printf("lc3 [image-file1] ...\n");
+        printf("assvm [image-file1] ...\n");
         exit(2);
     }
     
