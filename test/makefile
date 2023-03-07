@@ -8,4 +8,4 @@ $(TARGET):$(OBJS)
 # clean 
 clean:
 	$(RM) $(OBJS) $(TARGET)
-.PHONY:  clean
+.PHONY:  clean 
