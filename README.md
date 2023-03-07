@@ -26,15 +26,15 @@ nixistar@ubuntu:~/AssemblyVMachine/test$ ./2048
 Control the game using WASD keys.
 Are you on an ANSI terminal (y/n)? n
 +-----------------------------+
-|                                               |
-|   2                                          |
-|                                                |
-|                     2                        |
-|                                               |
-|                                               |
-|                                               |
-|                                               |
-|                                               |
+|                             |
+|   2                         |
+|                             |
+|                     2       |
+|                             |
+|                             |
+|                             |
+|                             |
+|                             |
 +------------------------------+
 ```
 ### ScreenShot
