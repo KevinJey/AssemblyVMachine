@@ -24,16 +24,27 @@ enum
     R_COND,
     R_COUNT
 };
+// 状态标志寄存器
 enum
 {
     FL_POS = 1 << 0, /* P */
     FL_ZRO = 1 << 1, /* Z */
     FL_NEG = 1 << 2, /* N */
 };
+// 操作码
 enum
 {
     OP_BR = 0, /* branch */
     OP_ADD,    /* add  */
+/*
+    OP_ADD的参数相加模式有寄存器模式和立即数模式，也就是说
+    立即数模式： 第二个参数直接存储在指令中而不是寄存器中，
+    这种模式可以更加方便的取数，而不用用额外的指令将数据从内存
+    加载到寄存器中。
+    寄存器模式，第二个数是存储在寄存器中的，和第一个数类似，这个
+    寄存器被称为SR2，保存在0-2比特中，3-4比特位没用到
+
+*/
     OP_LD,     /* load */
     OP_ST,     /* store */
     OP_JSR,    /* jump register */
@@ -49,12 +60,18 @@ enum
     OP_LEA,    /* load effective address */
     OP_TRAP    /* execute trap */
 };
-
+// 键盘状态寄存器和键盘数据寄存器 
 enum
 {
-    MR_KBSR = 0xFE00, /* keyboard status */
-    MR_KBDR = 0xFE02  /* keyboard data */
+    MR_KBSR = 0xFE00, /* keyboard status */ // 表示是否有按键按下
+    MR_KBDR = 0xFE02  /* keyboard data */   // 表示是哪个按键按下了
 };
+// 中断陷入例程，用于执行常规任务以及IO设备交换
+// 以下是每个 trap routine所对应的trap code中断号 他们没有被包含在指令的编码格式中
+// 当触发每个trap code的时候，会调用一个相应的C函数
+// 当这个函数执行完成之后会推出终端，返回到原来的指令流 ]
+
+
 enum
 {
     TRAP_GETC = 0x20,  /* get character from keyboard, not echoed onto the terminal */
@@ -64,10 +81,10 @@ enum
     TRAP_PUTSP = 0x24, /* output a byte string */
     TRAP_HALT = 0x25   /* halt the program */
 };
-
+// 64K的内存大小
 #define MEMORY_MAX (1 << 16)
 uint16_t memory[MEMORY_MAX];  /* 65536 locations */
-uint16_t reg[R_COUNT];
+uint16_t reg[R_COUNT]; // 定义的所有寄存器 他们都是16 bits
 
 struct termios original_tio;
 
@@ -101,6 +118,10 @@ void handle_interrupt(int signal)
     printf("\n");
     exit(-2);
 }
+
+// 有符号拓展，在立即数模式中存储的值只有5个bit，为了使它能够
+// 加到一个16比特的值上，需要将5bit的数扩展到16bit
+// 我们的做法是对正数补充0，负数填充1
 uint16_t sign_extend(uint16_t x, int bit_count)
 {
     if ((x >> (bit_count - 1)) & 1) {
@@ -108,15 +129,19 @@ uint16_t sign_extend(uint16_t x, int bit_count)
     }
     return x;
 }
+
 uint16_t swap16(uint16_t x)
 {
     return (x << 8) | (x >> 8);
 }
+// 条件标记枚举类型，每次有值写道寄存器的时候，我们需要更新
+//这个标记 以表明这个值的符号
 void update_flags(uint16_t r)
 {
     if (reg[r] == 0)
     {
         reg[R_COND] = FL_ZRO;
+        // 有一个专门的寄存器去存储标记位
     }
     else if (reg[r] >> 15) /* a 1 in the left-most bit indicates negative */
     {
@@ -127,6 +152,8 @@ void update_flags(uint16_t r)
         reg[R_COND] = FL_POS;
     }
 }
+
+// 实现了加载程序
 void read_image_file(FILE* file)
 {
     /* the origin tells us where in memory to place the image */
@@ -205,7 +232,7 @@ void ins(uint16_t instr)
     }
     if (0x4C0D & opbit)
     {
-        // Indirect address
+        // Indirect address h
         pc_plus_off = reg[R_PC] + sign_extend(instr & 0x1FF, 9);
     }
     if (0x0001 & opbit)
