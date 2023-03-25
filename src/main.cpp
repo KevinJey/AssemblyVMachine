@@ -66,13 +66,12 @@ enum
     MR_KBSR = 0xFE00, /* keyboard status */ // 表示是否有按键按下
     MR_KBDR = 0xFE02  /* keyboard data */   // 表示是哪个按键按下了
 };
+
 // 中断陷入例程，用于执行常规任务以及IO设备交换
 // 以下是每个 trap routine所对应的trap code中断号 他们没有被包含在指令的编码格式中
 // 当触发每个trap code的时候，会调用一个相应的C函数
 // 当这个函数执行完成之后会推出终端，返回到原来的指令流 ]
-
-
-enum
+enumx
 {
     TRAP_GETC = 0x20,  /* get character from keyboard, not echoed onto the terminal */
     TRAP_OUT = 0x21,   /* output a character */
