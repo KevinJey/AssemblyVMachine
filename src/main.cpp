@@ -71,7 +71,7 @@ enum
 // 以下是每个 trap routine所对应的trap code中断号 他们没有被包含在指令的编码格式中
 // 当触发每个trap code的时候，会调用一个相应的C函数
 // 当这个函数执行完成之后会推出终端，返回到原来的指令流 ]
-enumx
+enum
 {
     TRAP_GETC = 0x20,  /* get character from keyboard, not echoed onto the terminal */
     TRAP_OUT = 0x21,   /* output a character */
