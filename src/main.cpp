@@ -101,7 +101,7 @@ void restore_input_buffering()
 }
 
 uint16_t check_key()
-{
+{   
     fd_set readfds;
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
@@ -128,7 +128,7 @@ uint16_t sign_extend(uint16_t x, int bit_count)
     }
     return x;
 }
-
+// 按字节逆序 0x7268 -> 0x6872
 uint16_t swap16(uint16_t x)
 {
     return (x << 8) | (x >> 8);
@@ -155,14 +155,17 @@ void update_flags(uint16_t r)
 // 实现了加载程序
 void read_image_file(FILE* file)
 {
-    /* the origin tells us where in memory to place the image */
+    /* 文件指针打开后的前16bit规定了程序在内存中的起始地址， 确定了起始地址就能确定这个程序在内存中的起始位置 */
     uint16_t origin;
-    fread(&origin, sizeof(origin), 1, file);
-    origin = swap16(origin);
+    // 读取这16bit确定程序在内存中的起始地址，确定了起始地址才能依次读取后面的指令和数据
+    fread(&origin, sizeof(origin), 1, file); 
+    // LC-3是大端，但是现在的计算机都是小端，
+    origin = swap16(origin); 
 
     /* we know the maximum file size so we only need one fread */
     uint16_t max_read = MEMORY_MAX - origin;
     uint16_t* p = memory + origin;
+    // 把file文件指针中的内容写入到origin往后的内容中 计算大小并防止越界
     size_t read = fread(p, sizeof(uint16_t), max_read, file);
 
     /* swap to little endian */
@@ -172,6 +175,7 @@ void read_image_file(FILE* file)
         ++p;
     }
 }
+// 读入.obj格式的文件
 int read_image(const char* image_path)
 {
     FILE* file = fopen(image_path, "rb");
@@ -375,8 +379,10 @@ int main(int argc, const char* argv[])
         }
     }
     signal(SIGINT, handle_interrupt);
+    // 这个是特定于Unix的设置终端输入的代码 可以无视
     disable_input_buffering();
 
+    // 程序初始化，寄存器值初始化
     reg[R_COND] = FL_ZRO;
 
     enum { PC_START = 0x3000 };
